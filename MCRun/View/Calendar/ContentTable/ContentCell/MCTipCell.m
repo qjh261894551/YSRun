@@ -1,0 +1,50 @@
+//
+//  MCTipCell.m
+//  MCRun
+//
+//  Created by moshuqi on 15/10/16.
+//  Copyright © 2015年 msq. All rights reserved.
+//
+
+#import "MCTipCell.h"
+#import "MCAppMacro.h"
+
+@interface MCTipCell ()
+
+@property (nonatomic, weak) IBOutlet UILabel *tipLabel;
+@property (nonatomic, weak) IBOutlet UILabel *tipDetailLabel;
+
+@end
+
+@implementation MCTipCell
+
+- (void)awakeFromNib {
+    // Initialization code
+    [super awakeFromNib];
+    [self setupLabels];
+}
+
+- (void)setupLabels
+{
+    // 设置标签字体颜色和大小
+    
+    self.tipLabel.textColor = RGB(56, 56, 56);
+    self.tipDetailLabel.textColor = RGB(136, 136, 136);
+    
+    self.tipLabel.adjustsFontSizeToFitWidth = YES;
+    self.tipDetailLabel.adjustsFontSizeToFitWidth = YES;
+}
+
+- (void)setSelected:(BOOL)selected animated:(BOOL)animated {
+    [super setSelected:selected animated:animated];
+
+    // Configure the view for the selected state
+}
+
+- (void)setupWithTip:(NSString *)tip tipDetail:(NSString *)detail
+{
+    self.tipLabel.text = tip;
+    self.tipDetailLabel.text = detail;
+}
+
+@end

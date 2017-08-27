@@ -1,4 +1,4 @@
-# YSRun
+# MCRun
 
 
 ## 易瘦跑步 iOS客户端

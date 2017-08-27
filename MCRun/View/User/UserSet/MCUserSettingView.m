@@ -1,0 +1,178 @@
+//
+//  MCUserSettingView.m
+//  MCRun
+//
+//  Created by moshuqi on 15/10/16.
+//  Copyright © 2015年 msq. All rights reserved.
+//
+
+#import "MCUserSettingView.h"
+#import "MCAppMacro.h"
+#import "MCDataManager.h"
+#import "MCDevice.h"
+
+#define UserSetTableViewReuseIdentifier @"UserSetTableViewReuseIdentifier"
+
+@interface MCUserSettingView () <UITableViewDelegate, UITableViewDataSource, MCUserSetCellDelegate>
+
+@property (nonatomic, weak) IBOutlet UITableView *tableView;
+@property (nonatomic, copy) NSArray *dataArray;
+
+@end
+
+const CGFloat kHeightForHeader = 10;
+
+@implementation MCUserSettingView
+
+- (void)awakeFromNib
+{
+    [super awakeFromNib];
+    [self initTableViewDataArray];
+    
+    [self.tableView registerNib:[UINib nibWithNibName:@"MCUserSetCell" bundle:nil] forCellReuseIdentifier:UserSetTableViewReuseIdentifier];
+    
+    self.tableView.backgroundColor = LightgrayBackgroundColor;
+    self.tableView.scrollEnabled = NO;
+}
+
+- (void)initTableViewDataArray
+{
+    // 1、我的昵称；2、设置
+    NSArray *array1 = @[[NSNumber numberWithInteger:MCSettingsTypeNickname]];
+    NSArray *array2 = @[[NSNumber numberWithInteger:MCSettingsTypeSet]];
+    
+    self.dataArray = @[array1, array2];
+}
+
+
+//- (id)initWithCoder:(NSCoder *)aDecoder
+//{
+//    if (self = [super initWithCoder:aDecoder])
+//    {
+//        UIView *containerView = [[[UINib nibWithNibName:@"MCUserSettingView" bundle:nil] instantiateWithOwner:self options:nil] objectAtIndex:0];
+//        
+//        CGRect newFrame = CGRectMake(0, 0, self.frame.size.width, self.frame.size.height);
+//        containerView.frame = newFrame;
+//        containerView.backgroundColor = [UIColor clearColor];
+//        
+//        [self addSubview:containerView];
+//    }
+//    
+//    return self;
+//}
+
+- (void)reloadTableView
+{
+    [self.tableView reloadData];
+}
+
+#pragma mark - UITableViewDelegate
+
+- (BOOL)tableView:(UITableView *)tableView shouldHighlightRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    NSArray *array = self.dataArray[indexPath.section];
+    MCSettingsType cellType = (MCSettingsType)[array[indexPath.row] integerValue];
+    
+    // 单位和心率cell点击时没有反应
+    if (cellType == MCSettingsTypeMeasure ||
+        cellType == MCSettingsTypeHeartRatePanel ||
+        cellType == MCSettingsTypeNickname)
+    {
+        return NO;
+    }
+    return YES;
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    [self.tableView deselectRowAtIndexPath:indexPath animated:YES];
+    
+    NSArray *array = self.dataArray[indexPath.section];
+    MCSettingsType cellType = (MCSettingsType)[array[indexPath.row] integerValue];
+    
+    [self.delegate userSettingViewDidSelectedType:cellType];
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    CGFloat heightForRow = 44;
+    if ([MCDevice isPhone6Plus])
+    {
+        heightForRow = 60;
+    }
+    
+    return heightForRow;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section
+{
+    return kHeightForHeader;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section
+{
+    return 0.1;
+}
+
+- (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
+{
+    UIView *view = [UIView new];
+    view.backgroundColor = LightgrayBackgroundColor;
+    
+    return view;
+}
+
+#pragma mark - UITableViewDataSource
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    NSArray *array = self.dataArray[section];
+    return [array count];
+}
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+{
+    return [self.dataArray count];;
+}
+
+- (MCUserSetCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    MCUserSetCell *cell = [tableView dequeueReusableCellWithIdentifier:UserSetTableViewReuseIdentifier forIndexPath:indexPath];
+    cell.delegate = self;
+    
+    NSArray *array = self.dataArray[indexPath.section];
+    MCSettingsType type = [array[indexPath.row] integerValue];
+    
+    switch (type)
+    {
+        case MCSettingsTypeNickname:
+            [cell setupCellWithLeftText:@"我的昵称"
+                             centerText:nil
+                              rightText:nil
+                          textFieldText:[[MCDataManager shareDataManager] getUserName]
+                          switchVisible:NO];
+            break;
+            
+        case MCSettingsTypeSet:
+            [cell setupCellWithLeftText:@"设置"
+                             centerText:nil
+                              rightText:nil
+                          textFieldText:nil
+                          switchVisible:NO];
+            break;
+            
+        default:
+            break;
+    }
+    
+    return cell;
+}
+
+#pragma mark - MCUserSetCellDelegate
+
+- (void)textFieldTextChange:(NSString *)text
+{
+    [self.delegate modifyNickame:text];
+}
+
+@end

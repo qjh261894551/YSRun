@@ -1,0 +1,113 @@
+//
+//  MCUserNoLoginView.m
+//  MCRun
+//
+//  Created by moshuqi on 15/10/16.
+//  Copyright © 2015年 msq. All rights reserved.
+//
+
+#import "MCUserNoLoginView.h"
+#import "MCAppMacro.h"
+#import "MCDevice.h"
+
+#define UserNoLoginTableViewReuseIdentifier @"UserNoLoginTableViewReuseIdentifier"
+
+@interface MCUserNoLoginView () <UITableViewDelegate, UITableViewDataSource>
+
+@property (nonatomic, weak) IBOutlet UITableView *tableView;
+@property (nonatomic, weak) IBOutlet UIButton *loginButton;
+@property (nonatomic, weak) IBOutlet UILabel *loginTipLabel;
+
+@property (nonatomic, strong) IBOutlet NSLayoutConstraint *loginButtonHeightConstraint;
+@property (nonatomic, strong) IBOutlet NSLayoutConstraint *tableViewHeightConstraint;
+
+@property (nonatomic, strong) NSArray *cellTypeArray;
+
+@end
+
+@implementation MCUserNoLoginView
+
+- (void)awakeFromNib
+{
+    [super awakeFromNib];
+    
+    [self.tableView registerNib:[UINib nibWithNibName:@"MCUserSetCell" bundle:nil] forCellReuseIdentifier:UserNoLoginTableViewReuseIdentifier];
+    self.tableView.scrollEnabled = NO;
+    
+    self.backgroundColor = RGB(245, 245, 245);
+    
+    self.loginTipLabel.textColor = RGB(136, 136, 136);
+    self.loginTipLabel.backgroundColor = [UIColor clearColor];
+    
+    self.loginButton.backgroundColor = GreenBackgroundColor;
+    self.loginButton.layer.cornerRadius = ButtonCornerRadius;
+    self.loginButton.clipsToBounds = YES;
+    
+    if ([MCDevice isPhone6Plus])
+    {
+        self.loginButtonHeightConstraint.constant = 52;
+        self.tableViewHeightConstraint.constant = 60;
+    }
+    
+    [self setupCellTypeArray];
+}
+
+- (IBAction)loginButtonClicked:(id)sender
+{
+    [self.delegate login];
+}
+
+- (void)setupCellTypeArray
+{
+    // 未登录时，暂时只显示“设置”
+    self.cellTypeArray = @[[NSNumber numberWithInteger:MCSettingsTypeSet]];
+}
+
+#pragma mark - UITableViewDelegate
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    [self.tableView deselectRowAtIndexPath:indexPath animated:YES];
+    
+    MCSettingsType cellType = (MCSettingsType)[self.cellTypeArray[indexPath.row] integerValue];
+    [self.delegate userNoLoginViewDidSelectedType:cellType];
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    return CGRectGetHeight(self.tableView.frame) / [self.cellTypeArray count];
+}
+
+
+#pragma mark - UITableViewDataSource
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    return [self.cellTypeArray count];
+}
+
+- (MCUserSetCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    MCUserSetCell *cell = [tableView dequeueReusableCellWithIdentifier:UserNoLoginTableViewReuseIdentifier forIndexPath:indexPath];
+    MCSettingsType type = (MCSettingsType)[self.cellTypeArray[indexPath.row] integerValue];
+    
+    switch (type)
+    {
+        case MCSettingsTypeSet:
+            [cell setupCellWithLeftText:@"设置"
+                             centerText:nil
+                              rightText:nil
+                          textFieldText:nil
+                          switchVisible:NO];
+            break;
+            
+        default:
+            break;
+    }
+    
+    
+    return cell;
+}
+
+
+@end
